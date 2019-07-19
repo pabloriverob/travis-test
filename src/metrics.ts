@@ -15,24 +15,23 @@ export class MetricsHandler {
   constructor(db) {
     this.db = db
   }
-  public save(metric: Metric, callback: (err: Error | null, result?: any) => void) {
-    const collection = this.db.collection('documents')
+  public save(metric: Metric, username: string, callback: (err: Error | null, result?: any) => void) {
+    const collection = this.db.collection('users')
     // Insert some document
-    collection.insertOne(
-      metric,
-      function(err: any, result: any) {
-        if(err)
-        return callback(err, result)
-        console.log("Document inserted into the collection")
-        callback(err, result)
-    });
+    var newvalues = { $push: {"metrics": metric}};
+    collection.updateOne({username: username}, newvalues, function(err:any, result:any) {
+      if(err)
+      return callback(err, result)
+      console.log("Document inserted into the collection")
+      callback(err, result)
+    })
   }
 
   public remove(metric: Metric, callback: (err: Error | null, result?: any) => void) {
-    const collection = this.db.collection('documents')
+    const collection = this.db.collection('users')
     // Delete some document
     console.log(metric)
-    collection.remove(
+    collection.removeOne(
       {value: metric.value},
       function(err: any, result: any) {
         if(err)
@@ -42,10 +41,10 @@ export class MetricsHandler {
     });
   }
 
-  public get(metric: Metric, callback: (err: Error | null, result?: any) => void) {
-    const collection = this.db.collection('documents')
+  public get(username: string, callback: (err: Error | null, result?: any) => void) {
+    const collection = this.db.collection('users')
     // Delete some document
-    collection.find({"value" : metric.value}).toArray(function(err: any, result: object) {
+    collection.find({username: username}).toArray(function(err: any, result: object) {
         if(err)
         return callback(err, result)
         console.log("Document gotten from the collection")
